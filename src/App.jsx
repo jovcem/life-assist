@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Sun, CloudSun, Moon, Zap, Flame, Dumbbell, Coffee, Briefcase, CircleDot, Sparkles, ListChecks, Plus, X, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -63,9 +63,6 @@ function MealCard({ day, time, label, meal, kcal, macros, where, ingredients, re
   const options = alternatives ?? [{ day, time, label, meal, kcal, macros, where, ingredients, recipe }]
   const idx = selectedIdx ?? 0
   const [open, setOpen] = useState(false)
-  const [slideDir, setSlideDir] = useState(null)
-  const touchStartX = useRef(null)
-
   const cur = options[idx]
   const style = MEAL_STYLES[label] ?? { badge: 'bg-gray-100 text-gray-600', icon: Sun }
   const Icon = style.icon
@@ -75,27 +72,15 @@ function MealCard({ day, time, label, meal, kcal, macros, where, ingredients, re
   function go(dir, e) {
     e?.stopPropagation()
     if (isDisabled) return
-    setSlideDir(dir)
-    setTimeout(() => setSlideDir(null), 200)
     onChangeIdx((idx + dir + options.length) % options.length)
-  }
-
-  function handleTouchStart(e) { touchStartX.current = e.touches[0].clientX }
-  function handleTouchEnd(e) {
-    if (touchStartX.current === null) return
-    const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1)
-    touchStartX.current = null
   }
 
   return (
     <div
       className="overflow-hidden rounded-md border bg-card shadow-sm transition-shadow hover:shadow-md"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
     >
       <div
-        className={`relative cursor-pointer px-8 py-2 transition-opacity duration-200 ${slideDir !== null ? 'opacity-0' : 'opacity-100'}`}
+        className="relative cursor-pointer px-8 py-2"
         onClick={() => setOpen((o) => !o)}
       >
         {multi && (
@@ -271,7 +256,6 @@ export default function App() {
     const i = DAYS.indexOf(today)
     return i >= 0 ? i : 0
   })
-  const dayTouchStart = useRef(null)
 
   function getMealIdx(day, label) {
     const key = `${day}::${label}`
@@ -430,13 +414,6 @@ export default function App() {
       {/* Mobile: single swipeable day card */}
       <div
         className="flex flex-1 flex-col md:hidden"
-        onTouchStart={(e) => { dayTouchStart.current = e.touches[0].clientX }}
-        onTouchEnd={(e) => {
-          if (dayTouchStart.current === null) return
-          const dx = e.changedTouches[0].clientX - dayTouchStart.current
-          if (Math.abs(dx) > 40) setActiveDayIdx((i) => (i + (dx < 0 ? 1 : -1) + DAYS.length) % DAYS.length)
-          dayTouchStart.current = null
-        }}
       >
         {/* Day navigation header */}
         <div className="mb-3 flex items-center justify-between">
